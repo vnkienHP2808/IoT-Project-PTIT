@@ -5,6 +5,7 @@ import './models/SensorData'
 import './models/Forecast'
 import './models/Schedule'
 import cors from 'cors'
+import { sensorRouter } from './routes/sensor.routes'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -15,6 +16,7 @@ app.use(
 )
 
 app.use(express.json())
+app.use('/api', sensorRouter)
 const startServer = async () => {
   await connectDB()
   // await clearDataSensorData()
