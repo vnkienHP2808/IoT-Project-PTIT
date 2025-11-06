@@ -20,8 +20,6 @@ const ForecastSchema = new Schema({
     recommendation: { 
         type: String
     }
-}, {
-    timestamps: true
 });
 
 // cái này chưa biết để nhiều dự báo hay bao nhiêu nên để mặc định 1 nhé
