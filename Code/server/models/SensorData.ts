@@ -24,8 +24,6 @@ const SensorDataSchema = new Schema(
             default: Date.now,
             required: true
         }
-    }, {
-        timestamps: true // createdAt & updatedAt
     }
 )
 
