@@ -120,9 +120,15 @@ IoT/
 
 ## 👨‍💻 Team Members
 
-- Trịnh Quang Lâm
+- Trịnh Quang Lâm (Leader)
 - Cao Thị Thu Hương
 - Vũ Thế Văn
 - Vũ Nhân Kiên
 
 ---
+
+## System Design
+
+<p align="center">
+  <img src="./Code/img/Sơ đồ tổng quan.png" alt="Image title_1" />
+</p>
