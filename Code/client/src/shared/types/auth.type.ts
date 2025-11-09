@@ -14,9 +14,18 @@ interface LoginResponse {
   }
 }
 
+interface User {
+  id: string
+  email: string
+  fullName: string
+  address: string
+  phoneNumber: string
+  role: ROLE
+}
+
 export enum ROLE {
   Admin = 'ADMIN',
   User = 'USER'
 }
 
-export type { LoginRequest, LoginResponse }
+export type { LoginRequest, LoginResponse, User }

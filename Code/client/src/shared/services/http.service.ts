@@ -25,7 +25,7 @@ class _Http {
     this.instance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         // Có thể thêm token vào đây
-        const token = localStorage.getItem('accessToken')
+        const token = localStorage.getItem('access_token')
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -54,6 +54,7 @@ class _Http {
       },
       (error) => {
         // Xử lý lỗi response
+        console.log('error: ', error)
         if (error.response?.status === 401) {
           // Redirect to login hoặc refresh token
           console.log('Unauthorized access')
