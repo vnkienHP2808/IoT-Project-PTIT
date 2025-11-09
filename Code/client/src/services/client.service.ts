@@ -1,6 +1,6 @@
 import http from '@/shared/services/http.service'
 import type { ApiResponse } from '@/shared/types/http.type'
-import type { LoginRequest, LoginResponse, User } from '@/shared/types/auth.type'
+import type { GetCountDeviceResposne, LoginRequest, LoginResponse, User } from '@/shared/types/auth.type'
 
 class _ClientService {
   async login(payload: LoginRequest) {
@@ -10,6 +10,11 @@ class _ClientService {
 
   async getListUser() {
     const response = await http.get<ApiResponse<User[]>>('/users/list')
+    return response
+  }
+
+  async getCountDevice() {
+    const response = await http.get<ApiResponse<GetCountDeviceResposne>>('/users/count-device')
     return response
   }
 }

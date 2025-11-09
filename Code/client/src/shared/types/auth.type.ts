@@ -23,9 +23,13 @@ interface User {
   role: ROLE
 }
 
+interface GetCountDeviceResposne {
+  numberOfDevices: number
+}
+
 export enum ROLE {
   Admin = 'ADMIN',
   User = 'USER'
 }
 
-export type { LoginRequest, LoginResponse, User }
+export type { LoginRequest, LoginResponse, User, GetCountDeviceResposne }

@@ -1,6 +1,8 @@
 import { devices } from '../../dummy'
+import useDeviceListHook from './useDeviceListHook'
 
 const DeviceList = () => {
+  const { count } = useDeviceListHook()
   return (
     <div className='h-full rounded-3xl border-2 border-gray-800 bg-white p-6 shadow-lg'>
       <h2 className='mb-6 text-2xl font-bold'>Device list</h2>
@@ -15,6 +17,8 @@ const DeviceList = () => {
           </div>
         ))}
       </div>
+
+      <h2 className='mt-2 mb-6 text-2xl font-bold'>Number of microcontrollers in the network: ({count})</h2>
     </div>
   )
 }
