@@ -1,6 +1,6 @@
 import { Request } from 'express'
-import { UserRole } from '../../models/User';
+import * as jwt from 'jsonwebtoken'
 
-export interface AuthenticatedRequest extends Request {
-  user?: { id: number; username: string; role: UserRole }
+export interface AuthRequest extends Request {
+  user?: string | jwt.JwtPayload
 }

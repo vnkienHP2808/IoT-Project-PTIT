@@ -20,7 +20,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use('/api/user', userRouter)
+app.use('/api/users', userRouter)
 const httpServer = http.createServer(app)
 export const io = createSocketServer(httpServer)
 

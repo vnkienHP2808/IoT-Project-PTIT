@@ -1,8 +1,9 @@
 import { Request, Response } from 'express'
-import User from "../models/User"
+import User, { UserRole } from "../models/User"
 import HTTPStatus from "../shared/constants/httpStatus"
 import logger from "../utils/log"
 import * as jwt from 'jsonwebtoken'
+import { AuthRequest } from '../shared/types/util.type'
 
 
 const login = async (req: Request, res: Response) => {
@@ -43,7 +44,7 @@ const login = async (req: Request, res: Response) => {
     const userResponseData = {
       id: user.id,
       username: user.username,
-      fullname: user.fullname,
+      fullName: user.fullName,
       address: user.address,
       phoneNumber: user.phoneNumber,
       role: user.role
@@ -53,7 +54,7 @@ const login = async (req: Request, res: Response) => {
       message: 'Đăng nhập thành công',
       data: {
         access_token: access_token,
-        user_info: Payload
+        user_info: userResponseData
       }
     })
   } catch (error) {
@@ -65,4 +66,41 @@ const login = async (req: Request, res: Response) => {
   }
 }
 
-export { login }
+const getListUser = async (req: AuthRequest, res: Response) => {
+  logger.info('Lấy danh sách người dùng')
+  try {
+    const currentUserRole = (req.user as jwt.JwtPayload).role
+    if(currentUserRole === UserRole.ADMIN){
+      const listUser = await User.find().select('fullName address phoneNumber role')
+      if (listUser.length) {
+        return res.status(HTTPStatus.OK).json({
+          status: HTTPStatus.OK,
+          message: 'Lấy danh sách người dùng thành công',
+          data: listUser
+        })
+      } else {
+        return res.status(HTTPStatus.NO_CONTENT).json({
+          status: HTTPStatus.NO_CONTENT,
+          message: 'Danh sách người dùng hiện đang trống',
+          data: listUser
+        })
+      }
+    }
+    else{
+      return res.status(HTTPStatus.FORBIDDEN).json({
+          status: HTTPStatus.FORBIDDEN,
+          message: 'Bạn không có quyền hạn này',
+        })
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (e: any) {
+    logger.error('Lỗi không thể lấy danh sách người dùng: ', e)
+    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
+      status: HTTPStatus.INTERNAL_SERVER_ERROR,
+      message: 'Lỗi server',
+      data: null
+    })
+  }
+}
+
+export { login, getListUser }
