@@ -162,6 +162,7 @@ Cấu trúc Users trong DB sẽ là:
 username: string
 password: string
 fullName: string
+email: string
 address: string
 phoneNumber: string
 role: kiểu enum với 2 giá trị là USER, ADMIN (cái này ko biết thì tra chat là ra)
