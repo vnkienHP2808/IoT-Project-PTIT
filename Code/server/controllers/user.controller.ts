@@ -4,6 +4,8 @@ import HTTPStatus from "../shared/constants/httpStatus"
 import logger from "../utils/log"
 import * as jwt from 'jsonwebtoken'
 import { AuthRequest } from '../shared/types/util.type'
+import { getDeviceCount } from '../services/device.service'
+import { error } from 'console'
 
 
 const login = async (req: Request, res: Response) => {
@@ -103,4 +105,38 @@ const getListUser = async (req: AuthRequest, res: Response) => {
   }
 }
 
-export { login, getListUser }
+const getCountDevice = async (req: AuthRequest, res: Response) => {
+  logger.info('Lấy số lượng thiết bị kết nốt')
+  try {
+    const currentUserRole = (req.user as jwt.JwtPayload).role
+    if(currentUserRole === UserRole.ADMIN){
+      // Lấy số lượng từ service (bộ nhớ)
+      const deviceCount = getDeviceCount();
+
+      return res.status(HTTPStatus.OK).json({
+        status: HTTPStatus.OK,
+        message: 'Lấy số lượng thiết bị đang kết nối thành công',
+        data: {
+          numberOfDevices: deviceCount
+        }
+      });
+    }
+    else{
+      logger.error('Lỗi không thể lấy số lượng thiết bị')
+      return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
+        status: HTTPStatus.INTERNAL_SERVER_ERROR,
+        message: 'Lỗi server',
+        data: null
+      })
+    }
+  } catch (error : any) {
+    logger.error('Lỗi không thể đếm thiết bị: ', error)
+    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
+      status: HTTPStatus.INTERNAL_SERVER_ERROR,
+      message: 'Lỗi server',
+      data: null
+    })
+  }
+}
+
+export { login, getListUser, getCountDevice}

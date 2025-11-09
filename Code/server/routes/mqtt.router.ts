@@ -1,14 +1,18 @@
 import mqttClient from '../config/mqtt.config';
 import logger from '../utils/log';
 import { handleSensorData } from '../controllers/sensor.mqtt.controller';
+import { handleDeviceStatus } from '../services/device.service';
 
 export const startMqttSubscriptions = () => {
   mqttClient.on('connect', () => {
-    const topicSensorPushData = 'sensor/data/push';
+    const topicsToSubscribe = [
+      'sensor/data/push', 
+      'devices/status/+'    
+    ];
     
-    mqttClient.subscribe(topicSensorPushData, (err) => {
+    mqttClient.subscribe(topicsToSubscribe, (err) => {
       if (!err) {
-        logger.info(`Đã subscribe thành công topic: ${topicSensorPushData}`);
+        logger.info(`Đã subscribe thành công các topic: ${topicsToSubscribe.join(', ')}`);
       } else {
         logger.error('MQTT subscribe lỗi:', err);
       }
@@ -21,13 +25,16 @@ export const startMqttSubscriptions = () => {
     const payload = message.toString();
 
     //controller tương ứng
-    switch (topic) {
-      case 'sensor/data/push':
-        handleSensorData(payload);
-        break;
-      
-      default:
-        logger.warn(`Không có trình xử lý (handler) cho topic: ${topic}`);
+    if (topic === 'sensor/data/push') {
+      handleSensorData(payload);
+    } 
+
+    // topic status
+    else if (topic.startsWith('devices/status/')) {
+      handleDeviceStatus(topic, payload);
+    } 
+    else {
+      logger.warn(`Không có trình xử lý (handler) cho topic: ${topic}`);
     }
   });
 };
