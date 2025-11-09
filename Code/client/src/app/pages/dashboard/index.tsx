@@ -39,11 +39,6 @@ const DashBoardPage = () => {
         <div className='lg:col-span-1'>
           <RecentAlert />
         </div>
-
-        {/* AI Prediction - ẩn đi vì đã tích hợp vào PumpStatus */}
-        <div className='hidden lg:col-span-3'>
-          <AIPrediction />
-        </div>
       </div>
     </div>
   )

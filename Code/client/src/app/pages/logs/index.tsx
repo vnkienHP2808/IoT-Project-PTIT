@@ -1,19 +1,6 @@
-const LogPage = () => {
-  const activityLogs = [
-    {
-      time: '2025-11-08 08:00',
-      actor: 'AI',
-      event: 'Hoãn tưới',
-      note: 'p=0.82, mưa trong 60m nữa'
-    },
-    {
-      time: '2025-11-08 10:00',
-      actor: 'User',
-      event: 'Bật bơm',
-      note: 'manual override'
-    }
-  ]
+import { activityLogs } from './dummy'
 
+const LogPage = () => {
   return (
     <div className='rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-6'>
       <div className='rounded-3xl border-2 border-gray-800 bg-white p-8 shadow-lg'>

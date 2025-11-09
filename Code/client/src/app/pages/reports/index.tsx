@@ -1,10 +1,6 @@
-const ReportPage = () => {
-  const kpiData = {
-    metric: 'AI accuracy (monthly)',
-    value: '0.78',
-    label: '(recall)'
-  }
+import { kpiData } from './dummy'
 
+const ReportPage = () => {
   return (
     <div className='rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-6'>
       <div className='max-w-3xl rounded-3xl border-2 border-gray-800 bg-white p-8 shadow-lg'>

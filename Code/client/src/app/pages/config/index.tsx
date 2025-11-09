@@ -1,17 +1,13 @@
-import { useState } from 'react'
+import useConfigHook from './useConfigHook'
 
 const ConfigPage = () => {
-  const [soilMoistureThreshold, setSoilMoistureThreshold] = useState('40')
-  const [rainProbabilityThreshold, setRainProbabilityThreshold] = useState('0.7')
-
-  const handleSaveConfig = () => {
-    // TODO: Implement save config logic
-    console.log('Saving config:', {
-      soilMoistureThreshold,
-      rainProbabilityThreshold
-    })
-    alert('Cấu hình đã được lưu!')
-  }
+  const {
+    handleSaveConfig,
+    rainProbabilityThreshold,
+    soilMoistureThreshold,
+    setRainProbabilityThreshold,
+    setSoilMoistureThreshold
+  } = useConfigHook()
 
   return (
     <div className='rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-6'>
@@ -21,7 +17,6 @@ const ConfigPage = () => {
         <div className='space-y-8'>
           {/* Grid 2 cột cho các input */}
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-            {/* Ngưỡng độ ẩm đất */}
             <div>
               <label className='mb-3 block text-lg text-gray-500'>Ngưỡng độ ẩm đất</label>
               <input
@@ -33,7 +28,6 @@ const ConfigPage = () => {
               />
             </div>
 
-            {/* Ngưỡng xác suất dự báo mưa */}
             <div>
               <label className='mb-3 block text-lg text-gray-500'>Ngưỡng xác suất dự báo mưa</label>
               <input
@@ -47,7 +41,6 @@ const ConfigPage = () => {
             </div>
           </div>
 
-          {/* Save Config Button */}
           <div className='flex justify-center pt-4'>
             <button
               onClick={handleSaveConfig}

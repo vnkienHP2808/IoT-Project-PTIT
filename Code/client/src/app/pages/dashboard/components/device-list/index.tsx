@@ -1,9 +1,6 @@
-const DeviceList = () => {
-  const devices = [
-    { name: 'ESP32', status: 'online' },
-    { name: 'Pump', status: 'off' }
-  ]
+import { devices } from '../../dummy'
 
+const DeviceList = () => {
   return (
     <div className='h-full rounded-3xl border-2 border-gray-800 bg-white p-6 shadow-lg'>
       <h2 className='mb-6 text-2xl font-bold'>Device list</h2>

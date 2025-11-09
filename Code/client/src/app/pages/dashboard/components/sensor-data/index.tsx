@@ -1,12 +1,6 @@
-const SensorData = () => {
-  const sensorData = {
-    lastUpdate: '00:00:00 AM',
-    temperature: '29.0',
-    humidity: '72',
-    soilMoisture: '40',
-    airPressure: '1013.2'
-  }
+import { sensorData } from '../../dummy'
 
+const SensorData = () => {
   return (
     <div className='h-full rounded-3xl border-2 border-gray-800 bg-white p-6 shadow-lg'>
       <div className='mb-6 flex items-start justify-between'>

@@ -7,7 +7,6 @@ const AISchedule = () => {
         <h3 className='mb-2 text-lg font-semibold'>Forecast</h3>
         <p className='mb-4 text-gray-600'>(next 6 hours)</p>
 
-        {/* Placeholder cho line chart */}
         <div className='flex h-64 items-center justify-center rounded-2xl border-2 border-gray-200 p-6'>
           <div className='text-center text-gray-400 italic'>[Line chart]</div>
         </div>

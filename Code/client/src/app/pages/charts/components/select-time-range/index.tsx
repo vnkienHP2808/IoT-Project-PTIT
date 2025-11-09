@@ -1,14 +1,8 @@
 import { useState } from 'react'
+import { timeRanges } from '../../dummy'
 
 const SelectTimeRange = () => {
   const [selectedRange, setSelectedRange] = useState('3d')
-
-  const timeRanges = [
-    { value: '3h', label: '3h' },
-    { value: '24h', label: '24h' },
-    { value: '3d', label: '3d' },
-    { value: '7d', label: '7d' }
-  ]
 
   return (
     <div className='w-fit rounded-3xl border-2 border-gray-800 bg-white p-6 shadow-lg'>

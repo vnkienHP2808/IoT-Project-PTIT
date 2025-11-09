@@ -1,12 +1,6 @@
-const PumpStatus = () => {
-  const pumpStatus = {
-    status: 'OFF',
-    aiPrediction: {
-      rainProbability: 82,
-      suggestion: 'Hoãn tưới 90 phút'
-    }
-  }
+import { pumpStatus } from '../../dummy'
 
+const PumpStatus = () => {
   return (
     <div className='space-y-4'>
       <div className='rounded-3xl border-2 border-gray-800 bg-white p-6 shadow-lg'>

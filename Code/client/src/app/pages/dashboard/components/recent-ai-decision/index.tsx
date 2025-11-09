@@ -1,19 +1,6 @@
-const RecentAIDecision = () => {
-  const decisions = [
-    {
-      time: '08:00',
-      p60m: '0.82',
-      action: 'Hoãn 90m',
-      note: 'Pressure drop'
-    },
-    {
-      time: '10:00',
-      p60m: '0.45',
-      action: 'Tưới 10m',
-      note: 'Soil 38%'
-    }
-  ]
+import { decisions } from '../../dummy'
 
+const RecentAIDecision = () => {
   return (
     <div className='h-full rounded-3xl border-2 border-gray-800 bg-white p-6 shadow-lg'>
       <h2 className='mb-6 text-2xl font-bold'>Recent AI Decision</h2>

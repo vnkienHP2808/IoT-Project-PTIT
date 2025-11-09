@@ -1,31 +1,7 @@
-import { useState } from 'react'
+import useNotificationHook from './useNotificationHook'
 
 const NotificationPage = () => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      time: '08:00',
-      message: 'AI hoãn tưới (p=0.82)',
-      isRead: true
-    },
-    {
-      id: 2,
-      time: '10:00',
-      message: 'Đất khô, tưới 20m',
-      isRead: false
-    },
-    {
-      id: 3,
-      time: '14:00',
-      message: 'ESP32 disconnected',
-      isRead: false
-    }
-  ])
-
-  const handleMarkAllAsRead = () => {
-    setNotifications(notifications.map((notif) => ({ ...notif, isRead: true })))
-  }
-
+  const { handleMarkAllAsRead, notifications } = useNotificationHook()
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6'>
       <div className='rounded-3xl border-2 border-gray-800 bg-white p-8 shadow-lg'>
@@ -42,20 +18,17 @@ const NotificationPage = () => {
           </button>
         </div>
 
-        {/* Notifications List */}
         <div className='space-y-4'>
           {notifications.map((notification) => (
             <div
               key={notification.id}
               className='flex items-center justify-between border-b border-gray-200 py-4 last:border-0'
             >
-              {/* Time and Message */}
               <div className='flex items-center gap-8'>
                 <span className='w-20 text-lg font-medium'>{notification.time}</span>
                 <span className='text-lg'>{notification.message}</span>
               </div>
 
-              {/* Unread indicator (red dot) */}
               {!notification.isRead && <div className='h-3 w-3 rounded-full bg-red-500'></div>}
             </div>
           ))}
