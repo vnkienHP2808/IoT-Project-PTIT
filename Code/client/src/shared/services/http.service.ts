@@ -4,11 +4,15 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig
 } from 'axios'
+import { HTTP_STATUS, type ApiResponse } from '../types/http.type'
+import type { LoginResponse } from '../types/auth.type'
+import storageService from './storage.service'
 
 class _Http {
   private readonly instance: AxiosInstance
-
+  private access_token: string
   constructor() {
+    this.access_token = storageService.getAccessTokenFromLS()
     this.instance = axios.create({
       baseURL: import.meta.env.VITE_BACKEND_URL, // thường sẽ là localhost:8080//api/v1/
       timeout: 10000,
@@ -21,10 +25,10 @@ class _Http {
     this.instance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         // Có thể thêm token vào đây
-        // const token = localStorage.getItem('token')
-        // if (token) {
-        //   config.headers.Authorization = `Bearer ${token}`
-        // }
+        const token = localStorage.getItem('access_token')
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`
+        }
         return config
       },
       (error) => Promise.reject(error)
@@ -33,10 +37,24 @@ class _Http {
     // Config Response Interceptor
     this.instance.interceptors.response.use(
       (response: AxiosResponse) => {
+        const { url } = response.config
+        console.log('URL:', url)
+        if (url === '/users/login' && response.status === HTTP_STATUS.OK) {
+          const data = response.data as ApiResponse<LoginResponse>
+          console.log(`data:::`, data)
+          const fullName = data.data.user_info.fullName
+          const role = data.data.user_info.role
+          this.access_token = data.data.access_token
+
+          storageService.set('access_token', this.access_token)
+          storageService.set('role', role)
+          storageService.set('fullName', fullName)
+        }
         return response
       },
       (error) => {
         // Xử lý lỗi response
+        console.log('error: ', error)
         if (error.response?.status === 401) {
           // Redirect to login hoặc refresh token
           console.log('Unauthorized access')
