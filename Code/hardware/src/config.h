@@ -1,11 +1,11 @@
 #pragma once
 
 // Cấu hình WiFi
-#define WIFI_SSID       "ssid"      // SSID WiFi 
-#define WIFI_PASSWORD   "password"  // Mật khẩu
+#define WIFI_SSID       "Bo"      // SSID WiFi 
+#define WIFI_PASSWORD   "hwgc5970"  // Mật khẩu
 
 // MQTT Broker
-#define MQTT_BROKER     "mqtts://6737c5bbe1cd42bc9fe23790f95a7e72.s1.eu.hivemq.cloud"     // Địa chỉ public broker
+#define MQTT_BROKER     "6737c5bbe1cd42bc9fe23790f95a7e72.s1.eu.hivemq.cloud"     // Địa chỉ public broker
 #define MQTT_PORT       8883
 #define MQTT_USER       "server"
 #define MQTT_PASS       "Server123456"
@@ -16,7 +16,7 @@
 
 // Topics
 #define TOPIC_SENSOR_PUSH       "sensor/data/push"              // Thiết bị gửi dữ liệu cảm biến => Publish
-#define TOPIC_DEVICE_CONTROL    "device/control/schedule"       // Nhận lệnh hẹn giờ hoặc tưới tự động từ server => Subcribe
+#define TOPIC_DEVICE_CONTROL    "device/control/pump"       // Nhận lệnh hẹn giờ hoặc tưới tự động từ server => Subcribe
 #define TOPIC_DEVICE_FORCE      "device/force/manual"           // Nhận lệnh điều khiển thủ công => Subcribe
 #define TOPIC_DASHBOARD_SENSOR  "dashboard/update/sensor"       // Gửi dữ liệu cập nhật realtime lên dashboard => Publish
 #define TOPIC_DEVICE_STATUS     "device/status/" DEVICE_ID      // Gửi trạng thái hoạt động/kết nối của thiết bị => Publish
@@ -25,7 +25,8 @@
 // Pins
 #define PIN_SOIL_ADC        34      // Analog input của cảm biến độ ẩm đất
 #define PIN_PUMP            23      // Relay điều khiển motor
-#define PIN_BME             4       // Chân data của BME280
+#define I2C_SDA             21      // SDA
+#define I2C_SCL             22      // SCL            4       
 #define PIN_OVERRIDE_BTN    33      // Nút nhấn thủ công bật/tắt bơm
 
 // Timing
@@ -35,3 +36,7 @@
 
 // Safety
 #define MAX_PUMP_RUNTIME_SEC    600     // Define thời gian bơm mặc định tối đa là 10 phút
+
+// Soil calibration (raw ADC -> percent)
+#define SOIL_RAW_DRY   3000   // dry reading 
+#define SOIL_RAW_WET   1000   // wet reading 
