@@ -1,0 +1,12 @@
+pandas
+numpy
+scikit-learn
+xgboost
+fastapi
+uvicorn
+joblib
+requests
+flask
+python-dotenv
+joblib
+openai>=1.40.0

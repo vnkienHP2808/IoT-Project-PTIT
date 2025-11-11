@@ -1,0 +1,25 @@
+{
+  "features": [
+    "temp_c",
+    "rh_pct",
+    "pressure_hpa",
+    "soil_moist_pct",
+    "rain_mm_5min",
+    "pressure_delta15",
+    "rh_delta15",
+    "temp_delta15",
+    "temp_c_lag15",
+    "rh_pct_lag15",
+    "pressure_hpa_lag15",
+    "soil_moist_pct_lag15",
+    "temp_c_mean30",
+    "rh_pct_mean30",
+    "pressure_hpa_mean30",
+    "soil_moist_pct_mean30",
+    "rain_in_last_15m",
+    "hour_of_day",
+    "day_of_week"
+  ],
+  "target": "rain_amount_next_60_mm",
+  "note": "XGBoost regression for rainfall amount in next 60 minutes"
+}
