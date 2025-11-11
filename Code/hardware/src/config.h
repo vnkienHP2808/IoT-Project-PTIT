@@ -1,8 +1,8 @@
 #pragma once
 
 // Cấu hình WiFi
-#define WIFI_SSID       "Bo"      // SSID WiFi 
-#define WIFI_PASSWORD   "hwgc5970"  // Mật khẩu
+#define WIFI_SSID       "Hung Ly"      // SSID WiFi 
+#define WIFI_PASSWORD   "888888888"  // Mật khẩu
 
 // MQTT Broker
 #define MQTT_BROKER     "6737c5bbe1cd42bc9fe23790f95a7e72.s1.eu.hivemq.cloud"     // Địa chỉ public broker
