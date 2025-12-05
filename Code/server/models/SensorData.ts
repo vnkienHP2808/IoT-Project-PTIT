@@ -20,7 +20,7 @@ const SensorDataSchema = new Schema(
             required: true
         },
         timestamp: {
-            type: Date,
+            type: String,
             default: Date.now,
             required: true
         }
