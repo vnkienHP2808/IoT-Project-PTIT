@@ -11,9 +11,10 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts'
-import { humidityData, pressureData, temperatureData } from '../../dummy'
+import useChartHook from './useChartHook'
 
 const Chart = () => {
+  const { humidityDataArr, pressureArr, temperatureArr } = useChartHook()
   return (
     <div className='rounded-3xl border-2 border-gray-800 bg-white p-6 shadow-lg'>
       <h2 className='mb-6 text-2xl font-bold'>Biểu đồ</h2>
@@ -22,7 +23,7 @@ const Chart = () => {
         <div className='rounded-2xl border-2 border-gray-200 p-4'>
           <h3 className='mb-3 text-center text-lg font-semibold text-gray-700'>Nhiệt độ (°C)</h3>
           <ResponsiveContainer width='100%' height={200}>
-            <LineChart data={temperatureData}>
+            <LineChart data={temperatureArr}>
               <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
               <XAxis dataKey='time' tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} domain={[15, 35]} />
@@ -35,7 +36,7 @@ const Chart = () => {
         <div className='rounded-2xl border-2 border-gray-200 p-4'>
           <h3 className='mb-3 text-center text-lg font-semibold text-gray-700'>Độ ẩm đất (%)</h3>
           <ResponsiveContainer width='100%' height={200}>
-            <AreaChart data={humidityData}>
+            <AreaChart data={humidityDataArr}>
               <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
               <XAxis dataKey='time' tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
@@ -48,7 +49,7 @@ const Chart = () => {
         <div className='rounded-2xl border-2 border-gray-200 p-4'>
           <h3 className='mb-3 text-center text-lg font-semibold text-gray-700'>Áp suất (hPa)</h3>
           <ResponsiveContainer width='100%' height={200}>
-            <BarChart data={pressureData}>
+            <BarChart data={pressureArr}>
               <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
               <XAxis dataKey='time' tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} domain={[1008, 1018]} />
