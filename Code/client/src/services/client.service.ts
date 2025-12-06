@@ -1,6 +1,7 @@
 import http from '@/shared/services/http.service'
 import type { ApiResponse } from '@/shared/types/http.type'
 import type {
+  DataSensorResponse,
   GetCountDeviceResposne,
   GetLogsResponse,
   LoginRequest,
@@ -26,6 +27,33 @@ class _ClientService {
 
   async getLogs() {
     const response = await http.get<ApiResponse<GetLogsResponse[]>>('/users/get-logs')
+    return response
+  }
+
+  async exportCSVSensor() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await http.get<ApiResponse<any>>('/users/reports/esp/export', {
+      responseType: 'blob'
+    })
+    return response
+  }
+
+  async uploadFile(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await http.post<ApiResponse<any>>('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    return response
+  }
+
+  async getDataSensor() {
+    const response = await http.get<ApiResponse<DataSensorResponse>>('/sensors/get-data')
     return response
   }
 }
