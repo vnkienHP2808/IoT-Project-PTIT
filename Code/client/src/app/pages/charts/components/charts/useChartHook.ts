@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { humidityData, pressureData, temperatureData } from '../../dummy'
+import clientService from '@/services/client.service'
 
 export type DataType = {
   time: string
@@ -9,14 +10,26 @@ export type DataType = {
 const useChartHook = () => {
   const [temperatureArr, setTemperatureArr] = useState<DataType[]>([])
   const [pressureArr, setPressureArr] = useState<DataType[]>([])
-  const [humidityDataArr, setHumidityArr] = useState<DataType[]>([])
+  const [soilMoistureArr, setSoilMoistureArr] = useState<DataType[]>([])
+
+  const fetchData = async () => {
+    const response = await clientService.getDataSensor()
+    if (response.status === 200) {
+      const data = response.data.data
+      const temperatureArrResponse = data.temperatureArr
+      const pressureArrResponse = data.pressureArr
+      const soilMoistureArrResponse = data.soilMoistureArr
+      setTemperatureArr([...temperatureArrResponse])
+      setPressureArr([...pressureArrResponse])
+      setSoilMoistureArr([...soilMoistureArrResponse])
+      console.log(temperatureArrResponse, pressureArrResponse, soilMoistureArrResponse)
+    }
+  }
 
   useEffect(() => {
-    setTemperatureArr([...temperatureData])
-    setPressureArr([...pressureData])
-    setHumidityArr([...humidityData])
+    fetchData()
   }, [])
 
-  return { temperatureArr, pressureArr, humidityDataArr }
+  return { temperatureArr, pressureArr, soilMoistureArr }
 }
 export default useChartHook
