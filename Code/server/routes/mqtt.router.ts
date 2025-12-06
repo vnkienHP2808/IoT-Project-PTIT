@@ -1,6 +1,6 @@
 import mqttClient from '../config/mqtt.config';
 import logger from '../utils/log';
-import { handleSensorData } from '../controllers/sensor.mqtt.controller';
+import { handleSensorData } from '../controllers/sensor.controller';
 import { handleDeviceStatus } from '../services/device.service';
 import Topic from '../shared/constants/topic';
 

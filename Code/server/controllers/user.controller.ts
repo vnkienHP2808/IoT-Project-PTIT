@@ -229,7 +229,7 @@ const exportESP32Report = async (req: AuthRequest, res: Response) => {
     }
 
     const formatData = allDataSensor.map(log => ({
-      date_time: formatDate(log.timestamp),
+      date_time: log.timestamp,
       temperature: log.temperature,
       humidity: log.humidity,
       pressure_hpa: log.pressureHpa,
