@@ -42,9 +42,28 @@ interface DataSensorResponse {
   soilMoistureArr: DataType[]
 }
 
+interface TodaySchedule {
+  date: string
+  slots: [
+    {
+      start: string
+      end: string
+      durationMin: number
+    }
+  ]
+}
+
 export enum ROLE {
   Admin = 'ADMIN',
   User = 'USER'
 }
 
-export type { LoginRequest, LoginResponse, User, GetCountDeviceResposne, GetLogsResponse, DataSensorResponse }
+export type {
+  LoginRequest,
+  LoginResponse,
+  User,
+  TodaySchedule,
+  GetCountDeviceResposne,
+  GetLogsResponse,
+  DataSensorResponse
+}

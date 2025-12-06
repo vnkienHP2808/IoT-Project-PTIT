@@ -14,7 +14,7 @@ const NotificationPage = () => {
             className='flex items-center gap-2 text-gray-600 transition-colors hover:text-gray-800'
           >
             <span>Đánh dấu đã đọc</span>
-            <div className='flex h-5 w-5 items-center justify-center rounded border-2 border-gray-400'>
+            <div className='flex h-5 w-5 cursor-pointer items-center justify-center rounded border-2 border-gray-400'>
               {isReadAll ? 'X' : ''}
             </div>
           </button>

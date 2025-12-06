@@ -6,6 +6,7 @@ import type {
   GetLogsResponse,
   LoginRequest,
   LoginResponse,
+  TodaySchedule,
   User
 } from '@/shared/types/auth.type'
 
@@ -38,6 +39,14 @@ class _ClientService {
     return response
   }
 
+  async exportCSVAI() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await http.get<ApiResponse<any>>('/users/reports/ai/export', {
+      responseType: 'blob'
+    })
+    return response
+  }
+
   async uploadFile(file: File) {
     const formData = new FormData()
     formData.append('file', file)
@@ -54,6 +63,11 @@ class _ClientService {
 
   async getDataSensor() {
     const response = await http.get<ApiResponse<DataSensorResponse>>('/sensors/get-data')
+    return response
+  }
+
+  async getTodaySchedule() {
+    const response = await http.get<ApiResponse<TodaySchedule>>('/users/schedule/today')
     return response
   }
 }
