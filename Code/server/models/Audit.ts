@@ -7,6 +7,7 @@ export enum AuditEvent {
   GET_DEVICE_COUNT = 'Đếm số lượng thiết bị kết nối',
   GET_ESP32_REPORT = 'Xuất báo cáo dữ liệu từ ESP32',
   MANUAL_PUMP_CONTROL = 'Điều khiển bơm thủ công',
+  UPDATE_FIRMWARE = 'Cập nhật firmware cho cảm biến',
 }
 
 const AuditSchema = new Schema(
