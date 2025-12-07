@@ -114,7 +114,7 @@ export const handleIrrigationSchedule = async (payload: string) => {
         });
       }
 
-      // 1. Lưu DB
+      // Lưu DB
       schedulesToSave.push({
         start: start.toDate(),
         end: end.toDate(),
@@ -124,7 +124,7 @@ export const handleIrrigationSchedule = async (payload: string) => {
         note: `Tưới ${slot.duration_min} phút [${timeStart} - ${timeEnd}]`,
       });
 
-      // 2. Gửi Frontend
+      //  Gửi Frontend
       if (!groupedByDate.has(dateKey)) groupedByDate.set(dateKey, []);
       groupedByDate.get(dateKey)!.push({
         start: timeStart,
@@ -133,17 +133,17 @@ export const handleIrrigationSchedule = async (payload: string) => {
         decision: slot.decision ? slot.decision == 'confirm'?true:false : true
       });
 
-      // 3. Gửi phần cứng: giữ nguyên định dạng "2025-12-07T23:00:00" (local time, không Z)
+      // Gửi phần cứng,giữ nguyên định dạng 
       if (!groupedByDateSensor.has(dateKey)) groupedByDateSensor.set(dateKey, []);
       groupedByDateSensor.get(dateKey)!.push({
-        start_ts: start.format('YYYY-MM-DDTHH:mm:ss'),  // đúng như AI gửi
-        end_ts:   end.format('YYYY-MM-DDTHH:mm:ss'),    // không có Z
+        start_ts: start.format('YYYY-MM-DDTHH:mm:ss'),  
+        end_ts:   end.format('YYYY-MM-DDTHH:mm:ss'),   
         duration_min: slot.duration_min,
         decision: slot.decision ? slot.decision == 'confirm'?true:false : true
       });
     });
 
-    // Frontend
+    // gom nhóm Frontend
     const groupedDataForFE = Array.from(groupedByDate.entries())
       .map(([date, slots]) => ({
         date,
