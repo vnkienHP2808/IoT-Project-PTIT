@@ -9,7 +9,7 @@ userRouter.post('/login', login)
 
 userRouter.use(authenticateToken)
 userRouter.get('/list', getListUser)
-userRouter.get('/count-device', getCountDevice)
+// userRouter.get('/count-device', getCountDevice)
 userRouter.get('/get-logs', getLogs)
 userRouter.get('/reports/esp/export', exportESP32Report)
 userRouter.get('/reports/ai/export', exportAiReport)
