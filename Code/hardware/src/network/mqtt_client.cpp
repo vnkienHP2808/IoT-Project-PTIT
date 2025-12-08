@@ -46,7 +46,7 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
 
         String state = pump_is_on() ? "ON" : "OFF";
         String logMsg = "{\"source\":\"mqtt\",\"pump\":\"" + state + "\"}";
-        mqtt_publish(TOPIC_DEVICE_STATUS, logMsg, false); // retained status
+        mqtt_publish(TOPIC_PUMP_STATUS, logMsg, false); // retained status
         return;
     }
 
