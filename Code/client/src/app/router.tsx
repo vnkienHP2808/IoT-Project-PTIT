@@ -13,6 +13,7 @@ import ProtectedRotes from '@/shared/components/protected-routes'
 import LoginPage from './pages/login'
 import NotificationPage from './pages/notification'
 import RequireAdmin from '@/shared/components/require-admin'
+import UpdateFirmwarePage from './pages/update-firmware'
 
 const router: RouteObject[] = [
   {
@@ -45,17 +46,21 @@ const router: RouteObject[] = [
       },
       {
         path: 'report-page',
-        element: (
-          <RequireAdmin>
-            <ReportPage />
-          </RequireAdmin>
-        ) // admin
+        element: <ReportPage /> // admin
       },
       {
         path: 'config-page',
         element: (
           <RequireAdmin>
             <ConfigPage />
+          </RequireAdmin>
+        ) // admin
+      },
+      {
+        path: 'update-firmware',
+        element: (
+          <RequireAdmin>
+            <UpdateFirmwarePage />
           </RequireAdmin>
         ) // admin
       },

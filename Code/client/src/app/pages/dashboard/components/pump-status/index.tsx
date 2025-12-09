@@ -1,7 +1,9 @@
-import useHook from './hook'
+type PropPumpStatus = {
+  handleOnClick: () => Promise<void>
+  open: boolean
+}
 
-const PumpStatus = () => {
-  const { handleOnClick, open } = useHook()
+const PumpStatus = ({ handleOnClick, open }: PropPumpStatus) => {
   return (
     <div className='space-y-4'>
       <div className='rounded-3xl border-2 border-gray-800 bg-white p-6 shadow-lg'>
@@ -17,7 +19,7 @@ const PumpStatus = () => {
             onClick={() => {
               handleOnClick()
             }}
-            className={`rounded-xl ${open ? 'bg-blue-600' : 'bg-gray-400'} px-8 py-3 text-lg font-semibold text-white transition-colors hover:bg-blue-700`}
+            className={`cursor-pointer rounded-xl ${open ? 'bg-blue-600' : 'bg-gray-400'} px-8 py-3 text-lg font-semibold text-white transition-colors hover:bg-blue-700`}
           >
             {!open ? 'Bật' : 'Tắt'}
           </button>

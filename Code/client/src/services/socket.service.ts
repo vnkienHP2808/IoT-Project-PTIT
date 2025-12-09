@@ -1,9 +1,13 @@
 import storageService from '@/shared/services/storage.service'
-import type { DataSensor } from '@/shared/types/sensor.type'
+import type { TodaySchedule } from '@/shared/types/auth.type'
+import type { AIPrediction, DataSensor } from '@/shared/types/sensor.type'
 import { io, type Socket } from 'socket.io-client'
 
 class SocketService {
   private socket: Socket | null = null
+  constructor() {
+    this.connect()
+  }
   connect() {
     if (this.socket?.connected) {
       return this.socket
@@ -33,10 +37,20 @@ class SocketService {
     this.socket = null
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onReceiveDataFromSensor(callback: (data: DataSensor) => void) {
     this.socket?.on('sensor/data/push', callback)
-    // bên server sẽ đẩy sang 60p 1 lần
+  }
+
+  onReceiveSuggestionFromAI(callback: (data: AIPrediction) => void) {
+    this.socket?.on('rain/forecast', callback)
+  }
+
+  onReceiveScheduleFromAI(callback: (data: TodaySchedule[]) => void) {
+    this.socket?.on('irrigation/schedule/update', callback)
+  }
+
+  onDeviceStatus(callback: (data: number) => void) {
+    this.socket?.on('count/device', callback)
   }
 }
 

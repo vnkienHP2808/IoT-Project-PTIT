@@ -4,10 +4,11 @@ import HTTPStatus from "../shared/constants/httpStatus"
 import logger from "../utils/log"
 import * as jwt from 'jsonwebtoken'
 import { AuthRequest } from '../shared/types/util.type'
-import { getDeviceCount } from '../services/device.service'
 import Audit, { AuditEvent } from '../models/Audit'
 import { Parser } from 'json2csv'
 import SensorData from '../models/SensorData'
+import Schedule from '../models/Schedule'
+import { io } from '..'
 
 
 const login = async (req: Request, res: Response) => {
@@ -108,38 +109,6 @@ const getListUser = async (req: AuthRequest, res: Response) => {
   }
 }
 
-const getCountDevice = async (req: AuthRequest, res: Response) => {
-  logger.info('Lấy số lượng thiết bị kết nốt')
-  try {
-    const currentUserRole = (req.user as jwt.JwtPayload).role
-    if(currentUserRole === UserRole.ADMIN){
-      // Lấy số lượng từ service (bộ nhớ)
-      const deviceCount = getDeviceCount();
-
-      return res.status(HTTPStatus.OK).json({
-        status: HTTPStatus.OK,
-        message: 'Lấy số lượng thiết bị đang kết nối thành công',
-        data: {
-          numberOfDevices: deviceCount
-        }
-      });
-    }
-    else{
-      logger.error('Bạn không có quyền hạn này')
-      return res.status(HTTPStatus.FORBIDDEN).json({
-        status: HTTPStatus.FORBIDDEN,
-        message: 'Bạn không có quyền hạn này',
-      })
-    }
-  } catch (error : any) {
-    logger.error('Lỗi không thể đếm thiết bị: ', error)
-    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
-      status: HTTPStatus.INTERNAL_SERVER_ERROR,
-      message: 'Lỗi server',
-      data: null
-    })
-  }
-}
 
 const formatDate = (date: Date): string => {
   if (!date) return '';
@@ -204,18 +173,18 @@ const exportESP32Report = async (req: AuthRequest, res: Response) => {
     const username = (req.user as jwt.JwtPayload).username
     const userRole = (req.user as jwt.JwtPayload).role
 
-    if(userRole !== 'ADMIN'){
-      logger.error('Bạn không có quyền hạn này')
-      return res.status(HTTPStatus.FORBIDDEN).json({
-        status: HTTPStatus.FORBIDDEN,
-        message: 'Bạn không có quyền hạn này',
-      })
-    }
+    // if(userRole !== 'ADMIN'){
+    //   logger.error('Bạn không có quyền hạn này')
+    //   return res.status(HTTPStatus.FORBIDDEN).json({
+    //     status: HTTPStatus.FORBIDDEN,
+    //     message: 'Bạn không có quyền hạn này',
+    //   })
+    // }
 
     const newAuditLog = new Audit({
       actor: username,
       event: AuditEvent.GET_ESP32_REPORT,
-      details: `Admin [${username}] đã xuất dữ liệu từ các cảm biến`
+      details: `Người dùng [${username}] đã xuất dữ liệu từ các cảm biến`
     })
     await newAuditLog.save()
 
@@ -229,7 +198,7 @@ const exportESP32Report = async (req: AuthRequest, res: Response) => {
     }
 
     const formatData = allDataSensor.map(log => ({
-      date_time: formatDate(log.timestamp),
+      date_time: log.timestamp,
       temperature: log.temperature,
       humidity: log.humidity,
       pressure_hpa: log.pressureHpa,
@@ -261,4 +230,73 @@ const exportESP32Report = async (req: AuthRequest, res: Response) => {
   
 }
 
-export { login, getListUser, getCountDevice, getLogs, exportESP32Report}
+const exportAiReport = async (req: AuthRequest, res: Response) => {
+  logger.info('Xuất báo cáo lịch tưới của AI');
+
+  try {
+    const username = (req.user as jwt.JwtPayload).username;
+    const userRole = (req.user as jwt.JwtPayload).role;
+
+    // Kiểm tra quyền ADMIN
+    // if (userRole !== 'ADMIN') {
+    //   logger.error('Bạn không có quyền hạn này');
+    //   return res.status(HTTPStatus.FORBIDDEN).json({
+    //     status: HTTPStatus.FORBIDDEN,
+    //     message: 'Bạn không có quyền hạn này',
+    //   });
+    // }
+
+    // Ghi log audit
+    const newAuditLog = new Audit({
+      actor: username,
+      event: AuditEvent.GET_AI_REPORT,
+      details: `Người dùng [${username}] đã xuất báo cáo lịch tưới của AI`,
+    });
+    await newAuditLog.save();
+
+    // Lấy toàn bộ lịch tưới từ AI (sắp xếp theo ngày và giờ bắt đầu)
+    const schedules = await Schedule.find()
+      .sort({ date: 1, start: 1 })
+      .lean()
+      .exec();
+
+    if (!schedules || schedules.length === 0) {
+      return res.status(HTTPStatus.NOT_FOUND).json({
+        message: 'Không có dữ liệu lịch tưới của AI để xuất.',
+      });
+    }
+
+    const formatData = schedules.map((item) => ({
+      date: item.date,                  
+      start: new Date(item.start).toLocaleString('vi-VN').split(' ')[0].substring(0, 5),
+      end: new Date(item.end).toLocaleString('vi-VN').split(' ')[0].substring(0, 5),   
+      duration_min: item.durationMin,     
+      note: item.note,                   
+    }));
+
+    const fields = ['date', 'start', 'end', 'duration_min', 'note'];
+    const opts = { fields, header: true };
+    const json2csvParser = new Parser(opts);
+    const csv = json2csvParser.parse(formatData);
+
+    // Thiết lập header để tải file CSV về
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="bao_cao_lich_tuoi_ai.csv"'
+    );
+
+    // Trả về file CSV
+    return res.status(HTTPStatus.OK).send(Buffer.from('\uFEFF' + csv, 'utf-8'));
+
+  } catch (error: any) {
+    logger.error('Lỗi khi xuất báo cáo lịch tưới AI: ', error);
+    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
+      status: HTTPStatus.INTERNAL_SERVER_ERROR,
+      message: 'Lỗi server khi xuất báo cáo',
+      data: null,
+    });
+  }
+};
+
+export { login, getListUser, getLogs, exportESP32Report, exportAiReport}

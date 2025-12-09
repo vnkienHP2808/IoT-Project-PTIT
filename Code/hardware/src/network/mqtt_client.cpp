@@ -1,112 +1,240 @@
+// mqtt_client.cpp
 #include "mqtt_client.h"
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+
+#include "../network/fota_update.h"
 #include "../config.h"
 #include "../network/ntp_time.h"
 #include "../control/pump_control.h"
+#include "../control/schedule.h"
 
-// WiFiClientSecure cho kết nối TLS (HiveMQ Cloud)
+// TLS client + PubSubClient
 static WiFiClientSecure espClient;
 static PubSubClient mqttClient(espClient);
 
-// Root CA (Let's Encrypt)
-const char* root_ca PROGMEM = R"EOF(
+// (Optional) Root CA (Let's Encrypt). Replace with full cert if you want verify server.
+const char* root_ca = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIFazCCA1OgAwIBAgISA5u4k2a9A3Vdjf6zVJpO0I48MA0GCSqGSIb3DQEBCwUA
-MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKDA1MZXQncyBFbmNyeXB0MQ8wDQYDVQQD
-DAZJQ0FfQ0EwHhcNMjQwMzA1MDcwMDAwWhcNMzQwMzA1MDcwMDAwWjBKMQswCQYD
-VQQGEwJVUzEWMBQGA1UECgwNTGV0J3MgRW5jcnlwdDEPMA0GA1UEAwwGSUNBX0NB
-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAuP6G3c8D2qzYwYHhzZoK
-3I0NJo+0DBTuwbO2hc+lF6Pb4L91A5CGFnjSTBPG2E4IbO4T2/yFoR9br3uT5ZNP
-dE1vBpwEMJXrT2UO0EyqlC9a3WSCXW3JzkFh5yGhJYrbbdkd21Cm4ynwrDUkI4fA
-YB0Rjffo3h3cMbW7K2E9WsvOrq6+n2GEnlghFOuZrIhArwNh9ZJH/boTVem6NYG4
-v+H86y5b6BfL53sIoe7ZbAbnT2IB0q9zHKt+R5EX6QeAbnRAh2+7R2i5gOGFs4uD
-p2MZgkN4Su9s4qDzpgY1tOvZZiR8MFQDXVYsoZZUsJ2SgUUDipM+5v3UQ+HxWe61
-53dQTVugCVVzt8r+wFc3/p7qBlDUUxR9QknX3Jm7zB0kB8qZzAF+3ZhD1r1Z+xV5
-AUpjGLsNnYwMjIUZyCP2f/fDvbKcE2q8IotjQOmrkAztL3tM1RQJc7e8yOlfMOMk
-d/6kDdOdAlkE0Ph7JvbAYETB95nTTjZht+SbpH8Cw+Pp0S1tXsvr17B8HXz/mQ==
+...
 -----END CERTIFICATE-----
 )EOF";
 
-// ========== Callback khi nhận message MQTT ==========
+// ------------------------- Forward declarations -------------------------
+void mqtt_heartbeat();
+void mqtt_publish(const char* topic, const String &payload, bool retain);
+
+// ------------------------- MQTT message callback -----------------------
 void onMqttMessage(char* topic, byte* payload, unsigned int length) {
     String msg;
+    msg.reserve(length);
     for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];
+
     Serial.printf("📩 MQTT <- %s : %s\n", topic, msg.c_str());
 
-    // Nếu payload là JSON
-    DynamicJsonDocument doc(256);
-    auto err = deserializeJson(doc, msg);
+    DynamicJsonDocument doc(1024);
+    bool jsonOK = (deserializeJson(doc, msg) == DeserializationError::Ok);
+    String action = jsonOK ? (doc["action"] | "") : msg;
 
-    String action;
-    if (!err) {
-        action = doc["action"] | "";
-    } else {
-        // Nếu không phải JSON, coi payload là "ON"/"OFF"
-        action = msg;
-    }
-
-    // xử lý pump
+    // Pump control
     if (String(topic) == TOPIC_DEVICE_CONTROL) {
-        Serial.printf("🧠 Command: %s\n", action.c_str());
+        Serial.printf("🧠 Pump command: %s\n", action.c_str());
         if (action == "ON") pump_on();
         else if (action == "OFF") pump_off();
 
         String state = pump_is_on() ? "ON" : "OFF";
-        String logMsg = "{\"source\":\"MQTT\",\"pump\":\"" + state + "\"}";
-        mqtt_publish(TOPIC_DEVICE_STATUS, logMsg);
+        String logMsg = "{\"source\":\"mqtt\",\"pump\":\"" + state + "\"}";
+        mqtt_publish(TOPIC_PUMP_STATUS, logMsg, false); // retained status
+        return;
+    }
+
+    // Force commands
+    if (String(topic) == TOPIC_DEVICE_FORCE) {
+        Serial.printf("🧠 Force command: %s\n", action.c_str());
+        if (action == "RESTART") {
+            Serial.println("🔄 Restarting device...");
+            delay(300);
+            ESP.restart();
+        }
+        return;
+    }
+
+    // FOTA
+    if (String(topic) == TOPIC_DEVICE_UPDATE) {
+        Serial.println("🚀 OTA command received!");
+        if (!jsonOK || !doc.containsKey("url")) {
+            Serial.println("⚠️ ERROR: Payload OTA missing 'url'");
+            return;
+        }
+        String otaUrl = doc["url"].as<String>();
+        Serial.println("🔗 Firmware URL: " + otaUrl);
+        fota_update(otaUrl);
+        return;
+    }
+
+    // Schedule payload
+    if (String(topic) == TOPIC_DEVICE_SCHEDULE) {
+        Serial.println("📥 Received irrigation schedule via MQTT");
+        irrigation_load_from_json(msg);
+        return;
     }
 }
 
-// =================== Kết nối MQTT ===================
+// ------------------------- MQTT connect -------------------------------
 void mqtt_connect() {
     while (!mqttClient.connected()) {
-        Serial.print("🔄 Connecting to MQTT...");
-        String clientId = String(DEVICE_ID) + "-" + String(random(0xffff), HEX);
-        if (mqttClient.connect(clientId.c_str(), MQTT_USER, MQTT_PASS)) {
-            Serial.println("✅ Connected!");
+        Serial.print("🔄 Connecting to MQTT... ");
 
-            // Subscribe các topic lệnh
+        String clientId = String(DEVICE_ID) + "-" + String(random(0xffff), HEX);
+
+        // LWT: retain = true so FE shows offline when abrupt disconnect
+        bool ok = mqttClient.connect(
+            clientId.c_str(),
+            MQTT_USER,
+            MQTT_PASS,
+            LWT_TOPIC,
+            1,               // qos
+            false,            // retain LWT
+            "{\"status\":\"offline\"}"
+        );
+
+        if (ok) {
+            Serial.println("✅ MQTT connected");
+
+            // subscribe topics
             mqttClient.subscribe(TOPIC_DEVICE_CONTROL);
             mqttClient.subscribe(TOPIC_DEVICE_FORCE);
+            mqttClient.subscribe(TOPIC_DEVICE_UPDATE);
+            mqttClient.subscribe(TOPIC_DEVICE_SCHEDULE);
 
-            // Thông báo thiết bị online
-            mqtt_publish(TOPIC_DEVICE_STATUS, "{\"status\":\"online\"}");
+            // publish online retained
+            mqtt_publish(TOPIC_DEVICE_STATUS, String("{\"status\":\"online\",\"device\":\"") + DEVICE_ID + "\"}", false);
+
         } else {
-            Serial.printf("❌ Failed rc=%d. Retry in 5s...\n", mqttClient.state());
-            delay(5000);
+            Serial.printf("❌ MQTT connect failed rc=%d - retry in 3s\n", mqttClient.state());
+            delay(3000);
         }
     }
 }
 
-// ========== Khởi tạo MQTT ==========
+// ------------------------- MQTT init ----------------------------------
 void mqtt_init() {
-    espClient.setInsecure();  // tạm bỏ verify CA nếu broker cho phép
+    espClient.setInsecure();
+
     mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
     mqttClient.setCallback(onMqttMessage);
+
+    mqttClient.setKeepAlive(15); // seconds
+    mqttClient.setSocketTimeout(5);
 }
 
-// ========== Loop MQTT ==========
+// ------------------------- MQTT loop ----------------------------------
+static bool wifiLost = false;
+
 void mqtt_loop() {
-    if (!mqttClient.connected()) mqtt_connect();
+    // 1) If WiFi lost -> close TLS socket to trigger broker LWT, do not attempt reconnect while WiFi down
+    if (WiFi.status() != WL_CONNECTED) {
+        if (!wifiLost) {
+            Serial.println("⚠️ WiFi LOST -> closing TLS socket to allow broker LWT");
+            espClient.stop(); // close TCP/TLS socket
+            wifiLost = true;
+        }
+        return;
+    }
+
+    // WiFi restored
+    if (wifiLost) {
+        Serial.println("📡 WiFi restored -> reconnect MQTT");
+        wifiLost = false;
+    }
+
+    // Reconnect if MQTT disconnected
+    if (!mqttClient.connected()) {
+        mqtt_connect();
+    }
+
+    // Normal loop
     mqttClient.loop();
+
+    // send heartbeat periodically while connected
+    if (mqttClient.connected()) mqtt_heartbeat();
 }
 
-// ========== Publish dữ liệu cảm biến ==========
+// ------------------------- Publish helpers ----------------------------
+void mqtt_publish(const char* topic, const String &payload, bool retain) {
+    if (!mqttClient.connected()) {
+        Serial.printf("⚠️ Skipped publish %s: not connected\n", topic);
+        return;
+    }
+    bool ok = mqttClient.publish(topic, payload.c_str(), retain);
+    if (ok) Serial.printf("📤 MQTT %s (retain=%d) → %s\n", topic, retain ? 1 : 0, payload.c_str());
+    else Serial.printf("⚠️ MQTT publish failed %s\n", topic);
+}
+
+// overload without retain (default false)
+void mqtt_publish(const char* topic, const String &payload) {
+    mqtt_publish(topic, payload, false);
+}
+
+// publish raw buffer with retain option
+void mqtt_publish_buffer(const char* topic, const uint8_t* buf, size_t len, bool retain) {
+    if (!mqttClient.connected()) {
+        Serial.printf("⚠️ Skipped publish %s: not connected\n", topic);
+        return;
+    }
+    bool ok = mqttClient.publish(topic, buf, len, retain);
+    if (ok) Serial.printf("📤 MQTT %s (buf,len=%u,retain=%d) ok\n", topic, (unsigned)len, retain ? 1 : 0);
+    else Serial.printf("⚠️ MQTT publish failed %s\n", topic);
+}
+
+// ------------------------- Publish sensor -----------------------------
 void mqtt_publish_sensor(JsonDocument &doc) {
+    if (!mqttClient.connected()) {
+        Serial.println("⚠️ MQTT publish skipped: not connected");
+        return;
+    }
     char buf[512];
     size_t n = serializeJson(doc, buf);
-    boolean ok = mqttClient.publish(TOPIC_SENSOR_PUSH, buf, n);
-    if (ok) {
-        Serial.println("📤 MQTT publish OK");
-    } else {
-        Serial.println("⚠️ MQTT publish failed");
+    mqtt_publish_buffer(TOPIC_SENSOR_PUSH, (const uint8_t*)buf, n, false);
+}
+
+// ------------------------- Heartbeat (retain) -------------------------
+void mqtt_heartbeat() {
+    static unsigned long lastBeat = 0;
+    const unsigned long intervalMs = 5000; // 5 giây
+
+    if (millis() - lastBeat < intervalMs) return;
+    lastBeat = millis();
+
+    if (!mqttClient.connected()) {
+        Serial.println("⚠️ HEARTBEAT skipped: MQTT not connected");
+        return;
+    }
+
+    DynamicJsonDocument doc(256);
+    doc["status"] = "online";
+    doc["ts"] = get_epoch();
+
+    // Log JSON payload trước khi publish
+    String jsonStr;
+    serializeJson(doc, jsonStr);
+
+    // Không publish RETAINED message
+    bool ok = mqttClient.publish(
+        TOPIC_DEVICE_STATUS,
+        jsonStr.c_str(),
+        false // retain
+    );
+}
+
+// ------------------------- MQTT flush helper ---------------------------
+void mqtt_flush(unsigned long timeoutMs) {
+    unsigned long deadline = millis() + timeoutMs;
+    while (millis() < deadline) {
+        mqtt_loop();
+        delay(0);
     }
 }
 
-// =================== Publish chung ===================
-void mqtt_publish(const char* topic, const String &payload) {
-    mqttClient.publish(topic, payload.c_str());
-    Serial.printf("📤 MQTT %s → %s\n", topic, payload.c_str());
-}
